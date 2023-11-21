@@ -161,3 +161,61 @@ def order_siblings_by_age(individuals):
 def list_deceased(individuals):
     deceased_individuals = [data for data in individuals.values() if not data['alive']]
     return deceased_individuals
+
+# US31: List living single individuals
+def list_living_single(individuals):
+    living_single = [data for data in individuals.values() if data['alive'] and not data['spouse']]
+    return living_single
+
+# US35: List recent births
+def list_recent_births(individuals):
+    today = datetime.today()
+    recent_births = [data for data in individuals.values() if data['birthday'] is not None
+                     and (today - datetime.strptime(data['birthday'], '%d %b %Y')).days <= 30]
+    return recent_births
+
+# Automated test cases using unittest
+class TestGEDCOMProcessing(unittest.TestCase):
+    def setUp(self):
+        # Code for setting up test data or initializing variables
+        self.individuals = {
+            '1': {'name': 'John Doe', 'birthday': '10 FEB 1990', 'alive': True, 'spouse': []},
+            '2': {'name': 'Jane Smith', 'birthday': '15 JAN 1985', 'alive': False, 'spouse': ['3']},
+            '3': {'name': 'Jack Johnson', 'birthday': '20 MAR 1975', 'alive': True, 'spouse': ['2']},
+        }
+
+    def test_order_siblings_by_age(self):
+        # Test US28: Order siblings by age
+        expected_order = [
+            {'name': 'Jack Johnson', 'birthday': '20 MAR 1975', 'alive': True, 'spouse': ['2']},
+            {'name': 'Jane Smith', 'birthday': '15 JAN 1985', 'alive': False, 'spouse': ['3']},
+            {'name': 'John Doe', 'birthday': '10 FEB 1990', 'alive': True, 'spouse': []}
+        ]
+        ordered_siblings = order_siblings_by_age(self.individuals)
+        self.assertEqual(ordered_siblings, expected_order)
+
+    def test_list_deceased(self):
+        # Test US29: List deceased individuals
+        expected_deceased = [{'name': 'Jane Smith', 'birthday': '15 JAN 1985', 'alive': False, 'spouse': ['3']}]
+        deceased_list = list_deceased(self.individuals)
+        self.assertEqual(deceased_list, expected_deceased)
+
+    def test_list_living_single(self):
+        # Test US31: List living single individuals
+        expected_single = [{'name': 'John Doe', 'birthday': '10 FEB 1990', 'alive': True, 'spouse': []}]
+        living_single_list = list_living_single(self.individuals)
+        self.assertEqual(living_single_list, expected_single)
+
+    def test_list_recent_births(self):
+        # Test US35: List recent births
+        individuals_with_recent_births = {
+            '1': {'name': 'John Doe', 'birthday': '10 FEB 1990', 'alive': True, 'spouse': []},
+            '2': {'name': 'Jane Smith', 'birthday': '15 JAN 1985', 'alive': False, 'spouse': []},
+            '3': {'name': 'Jack Johnson', 'birthday': '20 OCT 2023', 'alive': True, 'spouse': ['2']}
+        }
+        expected_recent_births = [{'name': 'Jack Johnson', 'birthday': '20 OCT 2023', 'alive': True, 'spouse': ['2']}]
+        recent_births_list = list_recent_births(individuals_with_recent_births)
+        self.assertEqual(recent_births_list, expected_recent_births)
+
+if __name__ == "__main__":
+    unittest.main()
